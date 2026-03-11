@@ -1,0 +1,742 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>보안 훈련 시뮬레이터</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Noto+Sans+KR:wght@400;700;900&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --red: #ff2020;
+    --dark-red: #8b0000;
+    --bg: #0a0000;
+    --panel: #110000;
+    --border: #3a0000;
+    --text: #ff6060;
+    --muted: #882222;
+    --white: #ffe0e0;
+    --mono: 'Share Tech Mono', monospace;
+    --sans: 'Noto Sans KR', sans-serif;
+  }
+
+  html, body {
+    width: 100%; height: 100%;
+    overflow: hidden;
+    background: var(--bg);
+    font-family: var(--sans);
+    color: var(--text);
+  }
+
+  /* === SCANLINE OVERLAY === */
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(0,0,0,0.25) 2px,
+      rgba(0,0,0,0.25) 4px
+    );
+    pointer-events: none;
+    z-index: 9998;
+    animation: flicker 0.15s infinite;
+  }
+
+  @keyframes flicker {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.92; }
+  }
+
+  /* === NOISE OVERLAY === */
+  body::after {
+    content: '';
+    position: fixed; inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 9997;
+    opacity: 0.4;
+  }
+
+  /* === MAIN CONTAINER === */
+  .screen {
+    width: 100vw; height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0;
+    animation: screenShake 0.5s ease-out;
+    position: relative;
+    overflow: hidden;
+  }
+
+  @keyframes screenShake {
+    0% { transform: translate(-8px, 4px); }
+    20% { transform: translate(6px, -6px); }
+    40% { transform: translate(-4px, 8px); }
+    60% { transform: translate(8px, -2px); }
+    80% { transform: translate(-2px, 4px); }
+    100% { transform: translate(0, 0); }
+  }
+
+  /* === BACKGROUND BINARY RAIN === */
+  .binary-bg {
+    position: fixed; inset: 0;
+    z-index: 0;
+    overflow: hidden;
+    opacity: 0.12;
+  }
+
+  .binary-col {
+    position: absolute;
+    top: -100%;
+    font-family: var(--mono);
+    font-size: 14px;
+    color: var(--red);
+    white-space: pre;
+    animation: fall linear infinite;
+    line-height: 1.6;
+  }
+
+  @keyframes fall {
+    to { transform: translateY(200vh); }
+  }
+
+  /* === CONTENT === */
+  .content {
+    position: relative;
+    z-index: 10;
+    width: min(820px, 96vw);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 28px;
+  }
+
+  /* === TOP BADGE === */
+  .badge {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 4px;
+    color: var(--muted);
+    text-transform: uppercase;
+    border: 1px solid var(--border);
+    padding: 6px 18px;
+    animation: blink 1.2s step-end infinite;
+  }
+
+  @keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+  }
+
+  /* === SKULL === */
+  .skull-wrap {
+    position: relative;
+  }
+
+  .skull {
+    font-size: 80px;
+    animation: pulse 1s ease-in-out infinite alternate;
+    filter: drop-shadow(0 0 20px var(--red));
+    line-height: 1;
+  }
+
+  @keyframes pulse {
+    from { transform: scale(1); filter: drop-shadow(0 0 12px var(--red)); }
+    to   { transform: scale(1.06); filter: drop-shadow(0 0 35px var(--red)); }
+  }
+
+  /* === MAIN TITLE === */
+  .title {
+    font-family: var(--mono);
+    font-size: clamp(28px, 5vw, 48px);
+    font-weight: 400;
+    color: var(--red);
+    text-align: center;
+    letter-spacing: 2px;
+    text-shadow:
+      0 0 10px var(--red),
+      0 0 40px rgba(255,32,32,0.4);
+    animation: glitch 4s infinite;
+    line-height: 1.1;
+  }
+
+  @keyframes glitch {
+    0%, 90%, 100% {
+      text-shadow: 0 0 10px var(--red), 0 0 40px rgba(255,32,32,0.4);
+      transform: none;
+    }
+    91% {
+      text-shadow: -3px 0 cyan, 3px 0 magenta;
+      transform: translate(-1px, 0);
+    }
+    92% {
+      text-shadow: 3px 0 cyan, -3px 0 magenta;
+      transform: translate(2px, 0);
+    }
+    93% {
+      text-shadow: 0 0 10px var(--red), 0 0 40px rgba(255,32,32,0.4);
+      transform: none;
+    }
+  }
+
+  /* === PANEL === */
+  .panel {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    width: 100%;
+    padding: 28px 32px;
+    position: relative;
+  }
+
+  .panel::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--red), transparent);
+    animation: scanBar 3s linear infinite;
+  }
+
+  @keyframes scanBar {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+  }
+
+  .panel-title {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 3px;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .panel-title::before {
+    content: '//';
+    color: var(--dark-red);
+  }
+
+  .message {
+    font-size: 15px;
+    line-height: 1.8;
+    color: var(--white);
+    opacity: 0.85;
+  }
+
+  .message strong {
+    color: var(--red);
+    font-weight: 700;
+  }
+
+  /* === TIMER === */
+  .timer-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+  }
+
+  .timer-label {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 4px;
+    color: var(--muted);
+    text-transform: uppercase;
+  }
+
+  .timer {
+    font-family: var(--mono);
+    font-size: clamp(42px, 8vw, 72px);
+    color: var(--red);
+    text-shadow: 0 0 20px var(--red);
+    letter-spacing: 8px;
+    font-weight: 400;
+    animation: timerPulse 1s ease-in-out infinite;
+  }
+
+  @keyframes timerPulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
+  }
+
+  .progress-track {
+    width: 100%;
+    height: 4px;
+    background: var(--border);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--dark-red), var(--red));
+    box-shadow: 0 0 8px var(--red);
+    transition: width 1s linear;
+  }
+
+  /* === REPORT BUTTON === */
+  .report-btn {
+    position: relative;
+    width: 100%;
+    padding: 22px 40px;
+    background: transparent;
+    border: 2px solid #00ff88;
+    color: #00ff88;
+    font-family: var(--mono);
+    font-size: 16px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    cursor: pointer;
+    overflow: hidden;
+    transition: all 0.2s;
+    text-shadow: 0 0 10px #00ff88;
+    box-shadow: 0 0 20px rgba(0,255,136,0.1), inset 0 0 20px rgba(0,255,136,0.05);
+    animation: borderPulse 2s ease-in-out infinite;
+  }
+
+  @keyframes borderPulse {
+    0%, 100% { box-shadow: 0 0 20px rgba(0,255,136,0.1), inset 0 0 20px rgba(0,255,136,0.05); }
+    50% { box-shadow: 0 0 40px rgba(0,255,136,0.3), inset 0 0 30px rgba(0,255,136,0.1); }
+  }
+
+  .report-btn::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, transparent 0%, rgba(0,255,136,0.15) 50%, transparent 100%);
+    transform: translateX(-100%);
+    transition: transform 0.4s;
+  }
+
+  .report-btn:hover::before {
+    transform: translateX(100%);
+  }
+
+  .report-btn:hover {
+    background: rgba(0,255,136,0.1);
+    box-shadow: 0 0 50px rgba(0,255,136,0.4);
+  }
+
+  .report-btn:active {
+    transform: scale(0.98);
+  }
+
+  /* === EMAIL MODAL === */
+  .modal-overlay {
+    display: none;
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.85);
+    z-index: 99999;
+    align-items: center;
+    justify-content: center;
+  }
+  .modal-overlay.show { display: flex; }
+
+  .modal {
+    background: #0d0d0d;
+    border: 1px solid #00ff88;
+    padding: 40px;
+    width: min(440px, 92vw);
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    box-shadow: 0 0 60px rgba(0,255,136,0.15);
+    animation: pop 0.25s cubic-bezier(0.68,-0.55,0.27,1.55);
+  }
+
+  .modal-title {
+    font-family: var(--mono);
+    font-size: 13px;
+    letter-spacing: 3px;
+    color: #00ff88;
+    text-shadow: 0 0 10px #00ff88;
+  }
+
+  .modal-desc {
+    font-family: var(--sans);
+    font-size: 14px;
+    color: #88ffbb;
+    line-height: 1.7;
+    opacity: 0.8;
+  }
+
+  .modal-input {
+    background: #000;
+    border: 1px solid #00ff88;
+    color: #00ff88;
+    font-family: var(--mono);
+    font-size: 15px;
+    padding: 14px 16px;
+    outline: none;
+    width: 100%;
+    letter-spacing: 1px;
+  }
+
+  .modal-input::placeholder { color: #1a5c3a; }
+  .modal-input:focus { box-shadow: 0 0 20px rgba(0,255,136,0.2); }
+
+  .modal-error {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--red);
+    display: none;
+    letter-spacing: 1px;
+  }
+  .modal-error.show { display: block; }
+
+  .modal-submit {
+    background: transparent;
+    border: 2px solid #00ff88;
+    color: #00ff88;
+    font-family: var(--mono);
+    font-size: 14px;
+    letter-spacing: 3px;
+    padding: 14px;
+    cursor: pointer;
+    text-transform: uppercase;
+    transition: all 0.2s;
+    text-shadow: 0 0 8px #00ff88;
+  }
+  .modal-submit:hover { background: rgba(0,255,136,0.1); box-shadow: 0 0 30px rgba(0,255,136,0.3); }
+
+
+  .success-screen {
+    display: none;
+    position: fixed; inset: 0;
+    background: #001a00;
+    z-index: 9999;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 24px;
+    animation: fadeIn 0.4s ease;
+  }
+
+  .success-screen.show {
+    display: flex;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  .success-icon { font-size: 80px; animation: pop 0.4s cubic-bezier(0.68,-0.55,0.27,1.55); }
+
+  @keyframes pop {
+    from { transform: scale(0); }
+    to { transform: scale(1); }
+  }
+
+  .success-title {
+    font-family: var(--mono);
+    font-size: clamp(24px, 4vw, 36px);
+    color: #00ff88;
+    text-shadow: 0 0 20px #00ff88;
+    letter-spacing: 3px;
+    text-align: center;
+  }
+
+  .success-body {
+    font-family: var(--sans);
+    font-size: 15px;
+    color: #88ffbb;
+    text-align: center;
+    line-height: 1.8;
+    max-width: 500px;
+    opacity: 0.85;
+  }
+
+  .success-body strong { color: #00ff88; }
+
+  .score-box {
+    border: 1px solid #00ff88;
+    padding: 16px 40px;
+    font-family: var(--mono);
+    color: #00ff88;
+    font-size: 13px;
+    letter-spacing: 2px;
+    opacity: 0.7;
+    text-align: center;
+  }
+
+  .divider {
+    width: 100%;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--border), transparent);
+  }
+
+  /* === CORNER DECORATIONS === */
+  .corner {
+    position: fixed;
+    width: 40px; height: 40px;
+    border-color: var(--border);
+    border-style: solid;
+    z-index: 11;
+  }
+  .corner.tl { top: 16px; left: 16px; border-width: 2px 0 0 2px; }
+  .corner.tr { top: 16px; right: 16px; border-width: 2px 2px 0 0; }
+  .corner.bl { bottom: 16px; left: 16px; border-width: 0 0 2px 2px; }
+  .corner.br { bottom: 16px; right: 16px; border-width: 0 2px 2px 0; }
+
+  /* === BOTTOM INFO BAR === */
+  .info-bar {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    height: 30px;
+    background: var(--panel);
+    border-top: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 20px;
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 2px;
+    z-index: 12;
+  }
+
+  .dot {
+    display: inline-block;
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--red);
+    margin-right: 6px;
+    animation: blink 1s step-end infinite;
+  }
+
+</style>
+</head>
+<body>
+
+<!-- Corner decorations -->
+<div class="corner tl"></div>
+<div class="corner tr"></div>
+<div class="corner bl"></div>
+<div class="corner br"></div>
+
+<!-- Binary rain background -->
+<div class="binary-bg" id="binaryBg"></div>
+
+<!-- Info bar -->
+<div class="info-bar">
+  <span><span class="dot"></span>SYSTEM COMPROMISED</span>
+  <span id="sysTime">--:--:--</span>
+  <span>ENCRYPTION IN PROGRESS</span>
+</div>
+
+<!-- Main ransomware screen -->
+<div class="screen" id="mainScreen">
+  <div class="content">
+
+    <div class="badge">⚠ WARNING ⚠</div>
+
+    <div class="skull-wrap">
+      <div class="skull">💀</div>
+    </div>
+
+    <div class="title">YOUR FILES HAVE BEEN<br>ENCRYPTED</div>
+
+    <div class="panel">
+      <div class="panel-title">감염 안내</div>
+      <p class="message">
+        귀하의 컴퓨터에 있는 <strong>모든 파일이 암호화</strong>되었습니다.<br>
+        문서, 사진, 데이터베이스 및 기타 중요한 파일이 더 이상 접근 불가합니다.<br><br>
+        이 화면은 <strong>보안 인식 훈련</strong>의 일부입니다.<br>
+        실제 상황에서는 즉시 <strong>IT 보안팀에 신고</strong>해야 합니다.
+      </p>
+    </div>
+
+    <div class="panel" style="padding: 20px 32px;">
+      <div class="timer-wrap">
+        <div class="timer-label">// 남은 시간</div>
+        <div class="timer" id="timer">10:00</div>
+        <div class="progress-track">
+          <div class="progress-fill" id="progressFill" style="width:100%"></div>
+        </div>
+      </div>
+    </div>
+
+    <button class="report-btn" onclick="reportToIT()">
+      🛡 IT 보안팀에 즉시 신고하기
+    </button>
+
+  </div>
+</div>
+
+<!-- Success screen -->
+<div class="success-screen" id="successScreen">
+  <div class="success-icon">✅</div>
+  <div class="success-title">올바른 대응입니다!</div>
+  <p class="success-body">
+    실제 랜섬웨어 감염 시 <strong>즉시 IT 보안팀에 신고</strong>하는 것이<br>
+    피해를 최소화하는 가장 중요한 첫 번째 조치입니다.
+  </p>
+  <div class="divider" style="width:300px; background: linear-gradient(90deg, transparent, #00ff88, transparent); height:1px;"></div>
+  <div class="score-box">
+    🎯 훈련 완료 &nbsp;|&nbsp; 신고 소요 시간: <span id="reportTime">--</span>
+  </div>
+  <div class="score-box" style="margin-top:-16px; font-size:12px; opacity:0.55;" id="userInfoBox">
+    —
+  </div>
+  <p class="success-body" style="font-size:13px; opacity:0.6;">
+    이 화면은 보안 인식 훈련 시뮬레이터입니다.<br>
+    실제 파일은 암호화되지 않았습니다.
+  </p>
+</div>
+
+<script>
+  // ============================================================
+  // ▼▼▼ 설정 영역 — 여기만 수정하세요 ▼▼▼
+  // ============================================================
+
+  // Google Apps Script 웹앱 URL을 여기에 붙여넣으세요
+  // (설정 방법은 파일 하단 주석 참고)
+  const SHEET_WEBHOOK_URL = 'https://script.google.com/a/macros/toss.im/s/AKfycbwN1XHsuzx3txL0TovYBMHyigBoelyjxTIEQ73gniZp8dLddCEjaJUyTF-hRGqkUyLp/exec';
+
+  // ============================================================
+  // ▲▲▲ 설정 영역 끝 ▲▲▲
+  // ============================================================
+
+
+  // === URL 파라미터 파싱 ===
+  const params = new URLSearchParams(window.location.search);
+  const USER = {
+    name: params.get('name') || '미확인',
+    dept: params.get('dept') || '미확인',
+    empId: params.get('id')   || '미확인',
+  };
+
+  // === BINARY RAIN ===
+  const bg = document.getElementById('binaryBg');
+  const cols = Math.floor(window.innerWidth / 18);
+  for (let i = 0; i < cols; i++) {
+    const col = document.createElement('div');
+    col.className = 'binary-col';
+    col.style.left = (i * 18 + Math.random() * 6) + 'px';
+    col.style.animationDuration = (6 + Math.random() * 10) + 's';
+    col.style.animationDelay = (-Math.random() * 10) + 's';
+    let str = '';
+    for (let j = 0; j < 60; j++) {
+      str += (Math.random() > 0.5 ? '1' : '0') + '\n';
+    }
+    col.textContent = str;
+    bg.appendChild(col);
+  }
+
+  // === CLOCK ===
+  function updateClock() {
+    const now = new Date();
+    document.getElementById('sysTime').textContent =
+      now.toTimeString().slice(0,8);
+  }
+  setInterval(updateClock, 1000);
+  updateClock();
+
+  // === COUNTDOWN TIMER ===
+  const TOTAL = 10 * 60;
+  let remaining = TOTAL;
+  let startTime = Date.now();
+  let timerInterval;
+
+  function formatTime(s) {
+    const m = Math.floor(s / 60);
+    const sec = s % 60;
+    return String(m).padStart(2,'0') + ':' + String(sec).padStart(2,'0');
+  }
+
+  timerInterval = setInterval(() => {
+    remaining--;
+    document.getElementById('timer').textContent = formatTime(remaining);
+    document.getElementById('progressFill').style.width = (remaining / TOTAL * 100) + '%';
+    if (remaining <= 60) {
+      document.getElementById('timer').style.color = '#ff8800';
+      document.getElementById('timer').style.textShadow = '0 0 20px #ff8800';
+    }
+    if (remaining <= 0) {
+      clearInterval(timerInterval);
+      document.getElementById('timer').textContent = '00:00';
+    }
+  }, 1000);
+
+  // === REPORT BUTTON → 바로 전송 ===
+  async function reportToIT() {
+    clearInterval(timerInterval);
+
+    const elapsed = Math.round((Date.now() - startTime) / 1000);
+    const mins = Math.floor(elapsed / 60);
+    const secs = elapsed % 60;
+    const elapsedLabel = mins > 0 ? `${mins}분 ${secs}초` : `${secs}초`;
+    const reportedAt = new Date().toLocaleString('ko-KR');
+
+    // 성공 화면
+    document.getElementById('reportTime').textContent = elapsedLabel;
+    document.getElementById('userInfoBox').innerHTML = `⏱ 신고 소요: <strong>${elapsedLabel}</strong>`;
+    document.getElementById('successScreen').classList.add('show');
+
+    // Google Sheets 전송 (서버에서 이메일 자동 수집)
+    try {
+      const qs = new URLSearchParams({
+        elapsed:    elapsedLabel,
+        reportedAt: reportedAt,
+        ua:         navigator.userAgent,
+      });
+      new Image().src = `${SHEET_WEBHOOK_URL}?${qs.toString()}`;
+    } catch(e) {
+      console.warn('Sheets 전송 실패:', e);
+    }
+  }
+</script>
+
+<!--
+=================================================================
+📋 Google Sheets 연동 설정 방법
+=================================================================
+
+1. Google Sheets에서 새 시트 생성
+   - 헤더: 이름 | 부서 | 사번 | 신고소요시간 | 신고소요(초) | 신고일시 | UserAgent
+
+2. 상단 메뉴 → 확장 프로그램 → Apps Script
+
+3. 아래 코드 붙여넣기:
+─────────────────────────────────────────────────────────────
+function doPost(e) {
+  const sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+  const data = JSON.parse(e.postData.contents);
+  sheet.appendRow([
+    data.name,
+    data.dept,
+    data.empId,
+    data.elapsed,
+    data.elapsedSec,
+    data.reportedAt,
+    data.userAgent
+  ]);
+  return ContentService
+    .createTextOutput(JSON.stringify({status:'ok'}))
+    .setMimeType(ContentService.MimeType.JSON);
+}
+─────────────────────────────────────────────────────────────
+
+4. 저장 후 → 배포 → 새 배포 → 유형: 웹 앱
+   - 실행 계정: 본인
+   - 액세스 권한: 모든 사용자
+   → 배포 후 나오는 URL을 위의 SHEET_WEBHOOK_URL에 붙여넣기
+
+5. 직원에게 배포할 URL 예시:
+   ransomware-simulation.html?name=홍길동&dept=개발팀&id=EMP001
+=================================================================
+-->
+</body>
+</html>
