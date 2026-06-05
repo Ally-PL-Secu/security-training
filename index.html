@@ -31,7 +31,11 @@
   }
 
   @media (max-width: 600px) {
-    html, body { overflow-y: auto; height: auto; min-height: 100vh; }
+    html, body {
+      overflow-y: auto;
+      height: auto;
+      min-height: 100vh;
+    }
   }
 
   /* === SCANLINE OVERLAY === */
@@ -76,6 +80,16 @@
     animation: screenShake 0.5s ease-out;
     position: relative;
     overflow: hidden;
+  }
+
+  @media (max-width: 600px) {
+    .screen {
+      height: auto;
+      min-height: 100vh;
+      overflow: visible;
+      padding: 70px 0 60px;
+      justify-content: flex-start;
+    }
   }
 
   @keyframes screenShake {
@@ -522,12 +536,6 @@
 
   /* === MOBILE === */
   @media (max-width: 600px) {
-    .screen {
-      height: auto;
-      min-height: 100vh;
-      padding: 60px 0 50px;
-      justify-content: flex-start;
-    }
     .content { gap: 16px; }
     .skull { font-size: 52px; }
     .panel { padding: 18px 16px; }
