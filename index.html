@@ -717,7 +717,7 @@
     document.getElementById('userInfoBox').innerHTML = `🕐 요청 시각: <strong>${reportedAt}</strong> | 📱 ${deviceType}`;
     document.getElementById('successScreen').classList.add('show');
 
-    // Google Sheets 전송 (서버에서 이메일 자동 수집)
+    // Google Sheets 전송 — 여러 방식 시도
     try {
       const qs = new URLSearchParams({
         elapsed:    elapsedLabel,
@@ -725,7 +725,13 @@
         device:     deviceType,
         ua:         ua,
       });
-      new Image().src = `${SHEET_WEBHOOK_URL}?${qs.toString()}`;
+      const url = `${SHEET_WEBHOOK_URL}?${qs.toString()}`;
+
+      // 방법 1: fetch no-cors
+      fetch(url, { method: 'GET', mode: 'no-cors' }).catch(() => {
+        // 방법 2: Image fallback
+        new Image().src = url;
+      });
     } catch(e) {
       console.warn('Sheets 전송 실패:', e);
     }
