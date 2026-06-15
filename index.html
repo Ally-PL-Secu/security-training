@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>시스템 오류</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Noto+Sans+KR:wght@400;700;900&display=swap');
@@ -20,58 +20,69 @@
     --white: #ffe0e0;
     --mono: 'Share Tech Mono', monospace;
     --sans: 'Noto Sans KR', sans-serif;
+
+    /* 반응형 크기 변수 */
+    --skull-size: 72px;
+    --title-size: clamp(20px, 3.5vw, 40px);
+    --timer-size: clamp(36px, 6vw, 64px);
+    --message-size: 14px;
+    --panel-pad: 20px 28px;
+    --content-gap: 20px;
+    --btn-pad: 18px 32px;
+    --btn-size: 15px;
+  }
+
+  /* 모바일 */
+  @media (max-width: 480px) {
+    :root {
+      --skull-size: 48px;
+      --title-size: clamp(16px, 5vw, 22px);
+      --timer-size: clamp(32px, 10vw, 44px);
+      --message-size: 12px;
+      --panel-pad: 12px 14px;
+      --content-gap: 12px;
+      --btn-pad: 14px 16px;
+      --btn-size: 12px;
+    }
+  }
+
+  /* 태블릿 */
+  @media (min-width: 481px) and (max-width: 768px) {
+    :root {
+      --skull-size: 58px;
+      --title-size: clamp(18px, 4vw, 30px);
+      --timer-size: clamp(34px, 8vw, 52px);
+      --message-size: 13px;
+      --panel-pad: 16px 20px;
+      --content-gap: 16px;
+      --btn-pad: 16px 24px;
+      --btn-size: 13px;
+    }
   }
 
   html, body {
     width: 100%; height: 100%;
-    overflow-y: auto;
+    overflow: hidden;
     background: var(--bg);
     font-family: var(--sans);
     color: var(--text);
   }
 
-  /* === MAIN CONTAINER === */
-  .screen {
-    width: 100vw;
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 0;
-    animation: screenShake 0.5s ease-out;
-    position: relative;
-    overflow: visible;
-    padding: 60px 0;
+  /* 모바일/태블릿은 스크롤 허용 */
+  @media (max-width: 768px) {
+    html, body { overflow-y: auto; height: auto; min-height: 100vh; }
   }
 
-  @media (max-width: 600px) {
-    .screen {
-      justify-content: flex-start;
-      padding: 70px 0 80px;
-    }
-  }
   body::before {
     content: '';
     position: fixed; inset: 0;
-    background: repeating-linear-gradient(
-      0deg,
-      transparent,
-      transparent 2px,
-      rgba(0,0,0,0.25) 2px,
-      rgba(0,0,0,0.25) 4px
-    );
+    background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.25) 2px, rgba(0,0,0,0.25) 4px);
     pointer-events: none;
     z-index: 9998;
     animation: flicker 0.15s infinite;
   }
+  @keyframes flicker { 0%, 100% { opacity: 1; } 50% { opacity: 0.92; } }
 
-  @keyframes flicker {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.92; }
-  }
-
-  /* === NOISE OVERLAY === */
   body::after {
     content: '';
     position: fixed; inset: 0;
@@ -81,6 +92,28 @@
     opacity: 0.4;
   }
 
+  .screen {
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+    animation: screenShake 0.5s ease-out;
+    padding: 40px 0 36px;
+  }
+
+  @media (max-width: 768px) {
+    .screen {
+      height: auto;
+      min-height: 100vh;
+      overflow: visible;
+      justify-content: flex-start;
+      padding: 56px 0 70px;
+    }
+  }
 
   @keyframes screenShake {
     0% { transform: translate(-8px, 4px); }
@@ -91,7 +124,6 @@
     100% { transform: translate(0, 0); }
   }
 
-  /* === BACKGROUND BINARY RAIN === */
   .binary-bg {
     position: fixed; inset: 0;
     z-index: 0;
@@ -103,105 +135,72 @@
     position: absolute;
     top: -100%;
     font-family: var(--mono);
-    font-size: 14px;
+    font-size: 13px;
     color: var(--red);
     white-space: pre;
     animation: fall linear infinite;
     line-height: 1.6;
   }
+  @keyframes fall { to { transform: translateY(200vh); } }
 
-  @keyframes fall {
-    to { transform: translateY(200vh); }
-  }
-
-  /* === CONTENT === */
   .content {
     position: relative;
     z-index: 10;
-    width: min(820px, 96vw);
+    width: min(780px, 94vw);
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 28px;
+    gap: var(--content-gap);
   }
 
-  /* === TOP BADGE === */
   .badge {
     font-family: var(--mono);
-    font-size: 11px;
+    font-size: 10px;
     letter-spacing: 4px;
     color: var(--muted);
     text-transform: uppercase;
     border: 1px solid var(--border);
-    padding: 6px 18px;
+    padding: 5px 16px;
     animation: blink 1.2s step-end infinite;
   }
-
-  @keyframes blink {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.3; }
-  }
-
-  /* === SKULL === */
-  .skull-wrap {
-    position: relative;
-  }
+  @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
 
   .skull {
-    font-size: 80px;
+    font-size: var(--skull-size);
     animation: pulse 1s ease-in-out infinite alternate;
-    filter: drop-shadow(0 0 20px var(--red));
+    filter: drop-shadow(0 0 16px var(--red));
     line-height: 1;
   }
-
   @keyframes pulse {
-    from { transform: scale(1); filter: drop-shadow(0 0 12px var(--red)); }
-    to   { transform: scale(1.06); filter: drop-shadow(0 0 35px var(--red)); }
+    from { transform: scale(1); filter: drop-shadow(0 0 10px var(--red)); }
+    to   { transform: scale(1.06); filter: drop-shadow(0 0 28px var(--red)); }
   }
 
-  /* === MAIN TITLE === */
   .title {
     font-family: var(--mono);
-    font-size: clamp(28px, 5vw, 48px);
+    font-size: var(--title-size);
     font-weight: 400;
     color: var(--red);
     text-align: center;
     letter-spacing: 2px;
-    text-shadow:
-      0 0 10px var(--red),
-      0 0 40px rgba(255,32,32,0.4);
+    text-shadow: 0 0 10px var(--red), 0 0 40px rgba(255,32,32,0.4);
     animation: glitch 4s infinite;
-    line-height: 1.1;
+    line-height: 1.2;
   }
-
   @keyframes glitch {
-    0%, 90%, 100% {
-      text-shadow: 0 0 10px var(--red), 0 0 40px rgba(255,32,32,0.4);
-      transform: none;
-    }
-    91% {
-      text-shadow: -3px 0 cyan, 3px 0 magenta;
-      transform: translate(-1px, 0);
-    }
-    92% {
-      text-shadow: 3px 0 cyan, -3px 0 magenta;
-      transform: translate(2px, 0);
-    }
-    93% {
-      text-shadow: 0 0 10px var(--red), 0 0 40px rgba(255,32,32,0.4);
-      transform: none;
-    }
+    0%, 90%, 100% { text-shadow: 0 0 10px var(--red), 0 0 40px rgba(255,32,32,0.4); transform: none; }
+    91% { text-shadow: -3px 0 cyan, 3px 0 magenta; transform: translate(-1px, 0); }
+    92% { text-shadow: 3px 0 cyan, -3px 0 magenta; transform: translate(2px, 0); }
+    93% { text-shadow: 0 0 10px var(--red), 0 0 40px rgba(255,32,32,0.4); transform: none; }
   }
 
-  /* === PANEL === */
   .panel {
     background: var(--panel);
     border: 1px solid var(--border);
     width: 100%;
-    padding: 28px 32px;
+    padding: var(--panel-pad);
     position: relative;
   }
-
   .panel::before {
     content: '';
     position: absolute;
@@ -210,53 +209,40 @@
     background: linear-gradient(90deg, transparent, var(--red), transparent);
     animation: scanBar 3s linear infinite;
   }
-
-  @keyframes scanBar {
-    0% { transform: translateX(-100%); }
-    100% { transform: translateX(100%); }
-  }
+  @keyframes scanBar { 0% { transform: translateX(-100%); } 100% { transform: translateX(100%); } }
 
   .panel-title {
     font-family: var(--mono);
-    font-size: 11px;
+    font-size: 10px;
     letter-spacing: 3px;
     color: var(--muted);
     text-transform: uppercase;
-    margin-bottom: 14px;
+    margin-bottom: 10px;
     display: flex;
     align-items: center;
     gap: 8px;
   }
-
-  .panel-title::before {
-    content: '//';
-    color: var(--dark-red);
-  }
+  .panel-title::before { content: '//'; color: var(--dark-red); }
 
   .message {
-    font-size: 15px;
-    line-height: 1.8;
+    font-size: var(--message-size);
+    line-height: 1.75;
     color: var(--white);
     opacity: 0.85;
   }
+  .message strong { color: var(--red); font-weight: 700; }
 
-  .message strong {
-    color: var(--red);
-    font-weight: 700;
-  }
-
-  /* === TIMER === */
   .timer-wrap {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 10px;
+    gap: 8px;
     width: 100%;
   }
 
   .timer-label {
     font-family: var(--mono);
-    font-size: 11px;
+    font-size: 10px;
     letter-spacing: 4px;
     color: var(--muted);
     text-transform: uppercase;
@@ -264,27 +250,21 @@
 
   .timer {
     font-family: var(--mono);
-    font-size: clamp(42px, 8vw, 72px);
+    font-size: var(--timer-size);
     color: var(--red);
     text-shadow: 0 0 20px var(--red);
-    letter-spacing: 8px;
+    letter-spacing: 6px;
     font-weight: 400;
     animation: timerPulse 1s ease-in-out infinite;
   }
-
-  @keyframes timerPulse {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.7; }
-  }
+  @keyframes timerPulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.7; } }
 
   .progress-track {
     width: 100%;
-    height: 4px;
+    height: 3px;
     background: var(--border);
-    position: relative;
     overflow: hidden;
   }
-
   .progress-fill {
     height: 100%;
     background: linear-gradient(90deg, var(--dark-red), var(--red));
@@ -292,17 +272,16 @@
     transition: width 1s linear;
   }
 
-  /* === REPORT BUTTON === */
   .report-btn {
     position: relative;
     width: 100%;
-    padding: 22px 40px;
+    padding: var(--btn-pad);
     background: transparent;
     border: 2px solid #00ff88;
     color: #00ff88;
     font-family: var(--mono);
-    font-size: 16px;
-    letter-spacing: 3px;
+    font-size: var(--btn-size);
+    letter-spacing: 2px;
     text-transform: uppercase;
     cursor: pointer;
     overflow: hidden;
@@ -311,113 +290,22 @@
     box-shadow: 0 0 20px rgba(0,255,136,0.1), inset 0 0 20px rgba(0,255,136,0.05);
     animation: borderPulse 2s ease-in-out infinite;
   }
-
   @keyframes borderPulse {
     0%, 100% { box-shadow: 0 0 20px rgba(0,255,136,0.1), inset 0 0 20px rgba(0,255,136,0.05); }
     50% { box-shadow: 0 0 40px rgba(0,255,136,0.3), inset 0 0 30px rgba(0,255,136,0.1); }
   }
-
   .report-btn::before {
     content: '';
-    position: absolute;
-    inset: 0;
+    position: absolute; inset: 0;
     background: linear-gradient(90deg, transparent 0%, rgba(0,255,136,0.15) 50%, transparent 100%);
     transform: translateX(-100%);
     transition: transform 0.4s;
   }
+  .report-btn:hover::before { transform: translateX(100%); }
+  .report-btn:hover { background: rgba(0,255,136,0.1); }
+  .report-btn:active { transform: scale(0.98); }
 
-  .report-btn:hover::before {
-    transform: translateX(100%);
-  }
-
-  .report-btn:hover {
-    background: rgba(0,255,136,0.1);
-    box-shadow: 0 0 50px rgba(0,255,136,0.4);
-  }
-
-  .report-btn:active {
-    transform: scale(0.98);
-  }
-
-  /* === EMAIL MODAL === */
-  .modal-overlay {
-    display: none;
-    position: fixed; inset: 0;
-    background: rgba(0,0,0,0.85);
-    z-index: 99999;
-    align-items: center;
-    justify-content: center;
-  }
-  .modal-overlay.show { display: flex; }
-
-  .modal {
-    background: #0d0d0d;
-    border: 1px solid #00ff88;
-    padding: 40px;
-    width: min(440px, 92vw);
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-    box-shadow: 0 0 60px rgba(0,255,136,0.15);
-    animation: pop 0.25s cubic-bezier(0.68,-0.55,0.27,1.55);
-  }
-
-  .modal-title {
-    font-family: var(--mono);
-    font-size: 13px;
-    letter-spacing: 3px;
-    color: #00ff88;
-    text-shadow: 0 0 10px #00ff88;
-  }
-
-  .modal-desc {
-    font-family: var(--sans);
-    font-size: 14px;
-    color: #88ffbb;
-    line-height: 1.7;
-    opacity: 0.8;
-  }
-
-  .modal-input {
-    background: #000;
-    border: 1px solid #00ff88;
-    color: #00ff88;
-    font-family: var(--mono);
-    font-size: 15px;
-    padding: 14px 16px;
-    outline: none;
-    width: 100%;
-    letter-spacing: 1px;
-  }
-
-  .modal-input::placeholder { color: #1a5c3a; }
-  .modal-input:focus { box-shadow: 0 0 20px rgba(0,255,136,0.2); }
-
-  .modal-error {
-    font-family: var(--mono);
-    font-size: 12px;
-    color: var(--red);
-    display: none;
-    letter-spacing: 1px;
-  }
-  .modal-error.show { display: block; }
-
-  .modal-submit {
-    background: transparent;
-    border: 2px solid #00ff88;
-    color: #00ff88;
-    font-family: var(--mono);
-    font-size: 14px;
-    letter-spacing: 3px;
-    padding: 14px;
-    cursor: pointer;
-    text-transform: uppercase;
-    transition: all 0.2s;
-    text-shadow: 0 0 8px #00ff88;
-  }
-  .modal-submit:hover { background: rgba(0,255,136,0.1); box-shadow: 0 0 30px rgba(0,255,136,0.3); }
-
-
+  /* SUCCESS */
   .success-screen {
     display: none;
     position: fixed; inset: 0;
@@ -426,53 +314,41 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 24px;
+    gap: 20px;
+    padding: 20px;
     animation: fadeIn 0.4s ease;
   }
+  .success-screen.show { display: flex; }
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-  .success-screen.show {
-    display: flex;
-  }
-
-  @keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
-  }
-
-  .success-icon { font-size: 80px; animation: pop 0.4s cubic-bezier(0.68,-0.55,0.27,1.55); }
-
-  @keyframes pop {
-    from { transform: scale(0); }
-    to { transform: scale(1); }
-  }
+  .success-icon { font-size: clamp(52px, 10vw, 80px); animation: pop 0.4s cubic-bezier(0.68,-0.55,0.27,1.55); }
+  @keyframes pop { from { transform: scale(0); } to { transform: scale(1); } }
 
   .success-title {
     font-family: var(--mono);
-    font-size: clamp(24px, 4vw, 36px);
+    font-size: clamp(16px, 4vw, 32px);
     color: #00ff88;
     text-shadow: 0 0 20px #00ff88;
-    letter-spacing: 3px;
+    letter-spacing: 2px;
     text-align: center;
   }
 
   .success-body {
     font-family: var(--sans);
-    font-size: 15px;
+    font-size: clamp(12px, 2vw, 15px);
     color: #88ffbb;
     text-align: center;
     line-height: 1.8;
-    max-width: 500px;
+    max-width: 480px;
     opacity: 0.85;
   }
 
-  .success-body strong { color: #00ff88; }
-
   .score-box {
     border: 1px solid #00ff88;
-    padding: 16px 40px;
+    padding: clamp(10px, 2vw, 16px) clamp(16px, 4vw, 40px);
     font-family: var(--mono);
     color: #00ff88;
-    font-size: 13px;
+    font-size: clamp(11px, 1.5vw, 13px);
     letter-spacing: 2px;
     opacity: 0.7;
     text-align: center;
@@ -484,35 +360,40 @@
     background: linear-gradient(90deg, transparent, var(--border), transparent);
   }
 
-  /* === CORNER DECORATIONS === */
+  /* CORNERS */
   .corner {
     position: fixed;
-    width: 40px; height: 40px;
+    width: clamp(20px, 3vw, 40px);
+    height: clamp(20px, 3vw, 40px);
     border-color: var(--border);
     border-style: solid;
     z-index: 11;
   }
-  .corner.tl { top: 16px; left: 16px; border-width: 2px 0 0 2px; }
-  .corner.tr { top: 16px; right: 16px; border-width: 2px 2px 0 0; }
-  .corner.bl { bottom: 16px; left: 16px; border-width: 0 0 2px 2px; }
-  .corner.br { bottom: 16px; right: 16px; border-width: 0 2px 2px 0; }
+  .corner.tl { top: 12px; left: 12px; border-width: 2px 0 0 2px; }
+  .corner.tr { top: 12px; right: 12px; border-width: 2px 2px 0 0; }
+  .corner.bl { bottom: 12px; left: 12px; border-width: 0 0 2px 2px; }
+  .corner.br { bottom: 12px; right: 12px; border-width: 0 2px 2px 0; }
 
-  /* === BOTTOM INFO BAR === */
+  /* INFO BAR */
   .info-bar {
     position: fixed;
     bottom: 0; left: 0; right: 0;
-    height: 30px;
+    height: 28px;
     background: var(--panel);
     border-top: 1px solid var(--border);
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 0 20px;
+    padding: 0 16px;
     font-family: var(--mono);
-    font-size: 10px;
+    font-size: clamp(8px, 1.2vw, 10px);
     color: var(--muted);
     letter-spacing: 2px;
     z-index: 12;
+  }
+
+  @media (max-width: 480px) {
+    .info-bar span:last-child { display: none; }
   }
 
   .dot {
@@ -523,51 +404,29 @@
     margin-right: 6px;
     animation: blink 1s step-end infinite;
   }
-
-  /* === MOBILE === */
-  @media (max-width: 600px) {
-    .content { gap: 16px; padding-bottom: 80px; }
-    .skull { font-size: 52px; }
-    .panel { padding: 18px 16px; }
-    .message { font-size: 13px; }
-    .timer { font-size: clamp(36px, 12vw, 56px); letter-spacing: 4px; }
-    .report-btn { padding: 18px 20px; font-size: 14px; letter-spacing: 1px; margin-bottom: 20px; }
-    .info-bar { font-size: 9px; padding: 0 10px; }
-    .info-bar span:last-child { display: none; }
-    .corner { width: 24px; height: 24px; }
-    .success-screen { padding: 40px 20px; }
-    .success-icon { font-size: 52px; }
-    .success-title { font-size: clamp(18px, 5vw, 26px); }
-    .score-box { padding: 12px 16px; font-size: 12px; }
-  }</style>
+</style>
 </head>
 <body>
 
-<!-- Corner decorations -->
 <div class="corner tl"></div>
 <div class="corner tr"></div>
 <div class="corner bl"></div>
 <div class="corner br"></div>
 
-<!-- Binary rain background -->
 <div class="binary-bg" id="binaryBg"></div>
 
-<!-- Info bar -->
 <div class="info-bar">
   <span><span class="dot"></span>SYSTEM COMPROMISED</span>
   <span id="sysTime">--:--:--</span>
   <span>ENCRYPTION IN PROGRESS</span>
 </div>
 
-<!-- Main ransomware screen -->
 <div class="screen" id="mainScreen">
   <div class="content">
 
     <div class="badge">⚠ WARNING ⚠</div>
 
-    <div class="skull-wrap">
-      <div class="skull">💀</div>
-    </div>
+    <div class="skull">💀</div>
 
     <div class="title">YOUR FILES HAVE BEEN<br>ENCRYPTED</div>
 
@@ -582,7 +441,7 @@
       </p>
     </div>
 
-    <div class="panel" style="padding: 20px 32px;">
+    <div class="panel" style="padding: var(--panel-pad);">
       <div class="timer-wrap">
         <div class="timer-label">// 남은 시간</div>
         <div class="timer" id="timer">10:00</div>
@@ -604,16 +463,14 @@
   <div class="success-icon">🔓</div>
   <div class="success-title">복구 요청이 접수되었습니다</div>
   <p class="success-body">
-    메일로 암호화폐 주소를 발송하였습니다.<br>
-    입금 확인 후 복구키를 전달하겠습니다. 
+    복호화 키 검증 중입니다.<br>
+    잠시 기다려주십시오.
   </p>
-  <div class="divider" style="width:300px; background: linear-gradient(90deg, transparent, #00ff88, transparent); height:1px;"></div>
+  <div class="divider" style="width:min(300px,80vw); background: linear-gradient(90deg, transparent, #00ff88, transparent); height:1px;"></div>
   <div class="score-box">
     ⏳ 예상 복구 시간: <span id="reportTime">--</span> 이내
   </div>
-  <div class="score-box" style="margin-top:-16px; font-size:12px; opacity:0.55;" id="userInfoBox">
-    —
-  </div>
+  <div class="score-box" style="margin-top:-12px; font-size:11px; opacity:0.55;" id="userInfoBox">—</div>
   <p class="success-body">
     복구가 완료되면 자동으로 재시작됩니다.<br>
     컴퓨터를 끄거나 재부팅하지 마십시오.
@@ -621,40 +478,42 @@
 </div>
 
 <script>
-  const SHEET_WEBHOOK_URL = 'https://script.google.com/a/macros/toss.im/s/AKfycbw_a6pC4LRxuGPQeWGKTpSdcti74-Nb6BrH3yeJ2OzJzdJprBr9Bh8jT1YtOFylqfuC/exec';
-
+  const SHEET_WEBHOOK_URL = 'https://script.google.com/a/macros/toss.im/s/AKfycbyjDmokaemzFJC0EmpBX4h9GBTj7stPq8ADNSqD4lAX9OaLuBwvdTQVv3Rrc6ZNKynP/exec';
 
   // === URL 파라미터 파싱 ===
   const params = new URLSearchParams(window.location.search);
   const USER = {
     name: params.get('name') || '미확인',
     dept: params.get('dept') || '미확인',
-    empId: params.get('id')   || '미확인',
+    empId: params.get('id') || '미확인',
   };
 
-  // === BINARY RAIN (모바일에서는 줄여서 성능 개선) ===
+  // === 기기 타입 감지 ===
+  const ua = navigator.userAgent;
+  const deviceType = /iPhone|iPad|iPod/.test(ua) ? 'iOS'
+    : /Android/.test(ua) ? 'Android'
+    : /Macintosh/.test(ua) ? 'Mac'
+    : /Windows/.test(ua) ? 'Windows' : 'Unknown';
+
+  // === BINARY RAIN ===
   const bg = document.getElementById('binaryBg');
   const isMobile = window.innerWidth < 600;
-  const cols = isMobile ? 8 : Math.floor(window.innerWidth / 18);
+  const cols = isMobile ? 8 : Math.floor(window.innerWidth / 20);
   for (let i = 0; i < cols; i++) {
     const col = document.createElement('div');
     col.className = 'binary-col';
-    col.style.left = (i * (isMobile ? window.innerWidth/8 : 18) + Math.random() * 6) + 'px';
-    col.style.animationDuration = (6 + Math.random() * 10) + 's';
+    col.style.left = (i * (isMobile ? window.innerWidth/8 : 20) + Math.random() * 4) + 'px';
+    col.style.animationDuration = (7 + Math.random() * 10) + 's';
     col.style.animationDelay = (-Math.random() * 10) + 's';
     let str = '';
-    for (let j = 0; j < 60; j++) {
-      str += (Math.random() > 0.5 ? '1' : '0') + '\n';
-    }
+    for (let j = 0; j < 60; j++) str += (Math.random() > 0.5 ? '1' : '0') + '\n';
     col.textContent = str;
     bg.appendChild(col);
   }
 
   // === CLOCK ===
   function updateClock() {
-    const now = new Date();
-    document.getElementById('sysTime').textContent =
-      now.toTimeString().slice(0,8);
+    document.getElementById('sysTime').textContent = new Date().toTimeString().slice(0,8);
   }
   setInterval(updateClock, 1000);
   updateClock();
@@ -685,7 +544,7 @@
     }
   }, 1000);
 
-  // === REPORT BUTTON → 바로 전송 ===
+  // === REPORT BUTTON ===
   async function reportToIT() {
     clearInterval(timerInterval);
 
@@ -695,30 +554,19 @@
     const elapsedLabel = mins > 0 ? `${mins}분 ${secs}초` : `${secs}초`;
     const reportedAt = new Date().toLocaleString('ko-KR');
 
-    // 기기 타입 감지
-    const ua = navigator.userAgent;
-    const deviceType = /iPhone|iPad|iPod/.test(ua) ? 'iOS'
-      : /Android/.test(ua) ? 'Android'
-      : /Macintosh/.test(ua) ? 'Mac'
-      : /Windows/.test(ua) ? 'Windows' : 'Unknown';
-
-    // 성공 화면
     document.getElementById('reportTime').textContent = elapsedLabel;
     document.getElementById('userInfoBox').innerHTML = `🕐 요청 시각: <strong>${reportedAt}</strong> | 📱 ${deviceType}`;
     document.getElementById('successScreen').classList.add('show');
 
-    // Google Sheets 전송 — credentials 포함하여 전송
     try {
       const qs = new URLSearchParams({
-        elapsed:    elapsedLabel,
+        elapsed: elapsedLabel,
         reportedAt: reportedAt,
-        device:     deviceType,
-        ua:         ua,
-        _:          Date.now(), // 캐시 방지
+        device: deviceType,
+        ua: ua,
+        _: Date.now(),
       });
       const url = `${SHEET_WEBHOOK_URL}?${qs.toString()}`;
-
-      // credentials include — toss.im 로그인 쿠키 함께 전송
       fetch(url, { method: 'GET', mode: 'no-cors', credentials: 'include' }).catch(() => {
         new Image().src = url;
       });
@@ -727,7 +575,5 @@
     }
   }
 </script>
-
-
 </body>
 </html>
