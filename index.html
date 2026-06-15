@@ -631,7 +631,7 @@
 </div>
 
 <script>
-  const SHEET_WEBHOOK_URL = 'https://script.google.com/a/macros/toss.im/s/AKfycbyivatRXBhjCrjUsLb8MmUMq5WG26fsZYTl9fyufqojANiV7oqGFM7S5EVx17h8k4xn/exec';
+  const SHEET_WEBHOOK_URL = 'https://script.google.com/a/macros/toss.im/s/AKfycbyKcbXwTo5N2uUncAHt7NXixO-EhOHgWvKmI6ulR-J0pCvvVmuQ0ue-F6JvklJy_djf/exec';
 
 
   // === URL 파라미터 파싱 ===
@@ -724,6 +724,7 @@
         reportedAt: reportedAt,
         device:     deviceType,
         ua:         ua,
+        _:          Date.now(), // 캐시 방지
       });
       const url = `${SHEET_WEBHOOK_URL}?${qs.toString()}`;
 
